@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Burst Monitor</title>
+    <meta http-equiv="refresh" content="3">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #090e1a;
+            --panel: #0d1525;
+            --border: #1a2840;
+            --accent: #00c8ff;
+            --accent2: #0057ff;
+            --text: #c8dff5;
+            --muted: #3a5070;
+            --safe-bg: #001f18;
+            --safe-accent: #00e5a0;
+            --safe-border: #00704a;
+            --danger-bg: #1f0007;
+            --danger-accent: #ff2255;
+            --danger-border: #7a0022;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        /* Radial glow */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(0,80,200,0.12) 0%, transparent 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .dashboard {
+            position: relative;
+            z-index: 1;
+            width: 480px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            padding: 0 4px;
+        }
+
+        .logo {
+            width: 42px;
+            height: 42px;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 0 16px rgba(0,200,255,0.3), inset 0 0 10px rgba(0,200,255,0.05);
+        }
+
+        .title-block h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .title-block p {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .header-live {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: blink 1.2s infinite;
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        /* Main Card */
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            padding: 22px 28px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-bar.safe {
+            background: linear-gradient(135deg, var(--safe-bg), rgba(0,31,24,0.4));
+            border-bottom-color: var(--safe-border);
+        }
+
+        .status-bar.danger {
+            background: linear-gradient(135deg, var(--danger-bg), rgba(31,0,7,0.4));
+            border-bottom-color: var(--danger-border);
+            animation: danger-pulse 1s infinite;
+        }
+
+        @keyframes danger-pulse {
+            0%, 100% { box-shadow: inset 0 0 30px rgba(255,34,85,0.06); }
+            50% { box-shadow: inset 0 0 60px rgba(255,34,85,0.14); }
+        }
+
+        .status-icon {
+            font-size: 32px;
+            line-height: 1;
+        }
+
+        .status-text {
+            flex: 1;
+        }
+
+        .status-text .label {
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .status-bar.safe .status-text .label { color: var(--safe-border); }
+        .status-bar.danger .status-text .label { color: var(--danger-border); }
+
+        .status-text .value {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .status-bar.safe .status-text .value { color: var(--safe-accent); }
+        .status-bar.danger .status-text .value { color: var(--danger-accent); }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: auto;
+        }
+
+        .status-bar.safe .status-indicator {
+            background: var(--safe-accent);
+            box-shadow: 0 0 12px var(--safe-accent);
+        }
+
+        .status-bar.danger .status-indicator {
+            background: var(--danger-accent);
+            box-shadow: 0 0 12px var(--danger-accent);
+            animation: blink 0.6s infinite;
+        }
+
+        /* Sensor Grid */
+        .sensors {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .sensor {
+            background: var(--panel);
+            padding: 20px 24px;
+            position: relative;
+            overflow: hidden;
+            transition: background 0.2s;
+        }
+
+        .sensor:hover { background: #111e35; }
+
+        .sensor::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--accent2), var(--accent));
+            opacity: 0.6;
+        }
+
+        .sensor-label {
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-family: 'Share Tech Mono', monospace;
+            margin-bottom: 8px;
+        }
+
+        .sensor-name {
+            font-size: 12px;
+            color: var(--text);
+            font-weight: 600;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .sensor-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: -1px;
+        }
+
+        .sensor-icon {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: 20px;
+            opacity: 0.25;
+        }
+
+        /* Footer */
+        .footer {
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+        }
+
+        .timestamp {
+            font-size: 11px;
+            color: var(--muted);
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .refresh-info {
+            font-size: 10px;
+            color: var(--muted);
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 1px;
+        }
+
+        /* Waiting state */
+        .waiting {
+            padding: 40px 28px;
+            text-align: center;
+        }
+
+        .waiting p {
+            color: var(--muted);
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 2px;
+            font-size: 13px;
+            animation: blink 1.5s infinite;
+        }
+
+        /* Scan line effect */
+        .scanline {
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 3px,
+                rgba(0,0,0,0.03) 3px,
+                rgba(0,0,0,0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+<div class="scanline"></div>
+
+<div class="dashboard">
+
+    <div class="header">
+        <div class="logo">⛈️</div>
+        <div class="title-block">
+            <h1>Cloud Burst</h1>
+            <p>Environmental Monitor</p>
+        </div>
+        <div class="header-live">
+            <div class="live-dot"></div>
+            LIVE
+        </div>
+    </div>
+
+    <div class="card">
+
+        {% if data %}
+
+            <div class="status-bar {{ 'danger' if data.prediction == 1 else 'safe' }}">
+                <div class="status-icon">{{ '🚨' if data.prediction == 1 else '✅' }}</div>
+                <div class="status-text">
+                    <div class="label">System Status</div>
+                    <div class="value">{{ 'Landslide Risk' if data.prediction == 1 else 'Area Safe' }}</div>
+                </div>
+                <div class="status-indicator"></div>
+            </div>
+
+            <div class="sensors">
+                <div class="sensor">
+                    <div class="sensor-icon">🌧️</div>
+                    <div class="sensor-label">SENSOR V1</div>
+                    <div class="sensor-name">Rainfall</div>
+                    <div class="sensor-value">{{ data.v1 }}</div>
+                </div>
+                <div class="sensor">
+                    <div class="sensor-icon">🌧️</div>
+                    <div class="sensor-label">SENSOR V2</div>
+                    <div class="sensor-name">Soil Moisture</div>
+                    <div class="sensor-value">{{ data.v2 }}</div>
+                </div>
+                <div class="sensor">
+                    <div class="sensor-icon">🌡️</div>
+                    <div class="sensor-label">SENSOR V3</div>
+                    <div class="sensor-name">Temperature</div>
+                    <div class="sensor-value">{{ data.v3 }}</div>
+                </div>
+                <div class="sensor">
+                    <div class="sensor-icon">💧</div>
+                    <div class="sensor-label">SENSOR V4</div>
+                    <div class="sensor-name">Humitity</div>
+                    <div class="sensor-value">{{ data.v4 }}</div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="timestamp">LAST ENTRY: {{ data.timestamp }}</div>
+                <div class="refresh-info">AUTO-REFRESH 3s</div>
+            </div>
+
+        {% else %}
+
+            <div class="waiting">
+                <p>⬡ AWAITING ESP32 CONNECTION...</p>
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+</body>
+</html>
