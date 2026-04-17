@@ -29,7 +29,7 @@ This project is a Final Year B.Tech project that focuses on predicting hyperloca
 4. Open browser to view output  
 
 ## 📊 Output
-(Add screenshots here)
+https://drive.google.com/file/d/1OjTf8Ax3LVMnlt3AYYc7ziZi54JWvlbL/view?usp=drivesdk
 
 ## 👩‍💻 Author
 Nisha Govindaraj
